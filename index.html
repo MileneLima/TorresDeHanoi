@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Torres de Hanoi</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    label {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Torres de Hanoi</h1>
+  <div class="controls">
+    <label for="numDiscos">Discos:</label>
+    <input type="number" id="numDiscos" value="3" min="1" max="10" />
+
+    <label for="velocidade">Velocidade:</label>
+    <input type="range" id="velocidade" min="100" max="2000" step="100" value="500" />
+
+    <button onclick="iniciarSimulacao()">Iniciar</button>
+    <button onclick="resetSimulacao()">Reset</button>
+  </div>
+  <canvas id="canvas" width="600" height="300"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let numDiscos = 3;
+    let velocidade = 500;
+    let torres;
+    let movimentos;
+    let intervalo;
+
+    function desenharTorres() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Desenhar as bases
+      for (let i = 0; i < 3; i++) {
+        const x = 100 + i * 200;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x - 5, 100, 10, 150);
+        ctx.fillRect(x - 50, 250, 100, 10);
+      }
+
+      // Desenhar os discos
+      for (let i = 0; i < 3; i++) {
+        const torre = torres[i];
+        for (let j = 0; j < torre.length; j++) {
+          const disco = torre[j];
+          const largura = 20 + disco * 20;
+          const altura = 20;
+          const x = 100 + i * 200;
+          const y = 230 - j * altura;
+
+          ctx.fillStyle = `hsl(${disco * 40}, 70%, 60%)`;
+          ctx.fillRect(x - largura / 2, y, largura, altura);
+        }
+      }
+    }
+
+    function moverDiscos(n, origem, destino, auxiliar) {
+      if (n === 1) {
+        movimentos.push([origem, destino]);
+      } else {
+        moverDiscos(n - 1, origem, auxiliar, destino);
+        movimentos.push([origem, destino]);
+        moverDiscos(n - 1, auxiliar, destino, origem);
+      }
+    }
+
+    function executarMovimentos() {
+      if (movimentos.length === 0) {
+        clearInterval(intervalo);
+        return;
+      }
+      const [origem, destino] = movimentos.shift();
+      const disco = torres[origem].pop();
+      torres[destino].push(disco);
+      desenharTorres();
+    }
+
+    function iniciarSimulacao() {
+      numDiscos = parseInt(document.getElementById('numDiscos').value);
+      velocidade = parseInt(document.getElementById('velocidade').value);
+
+      torres = [[], [], []];
+      for (let i = numDiscos; i > 0; i--) {
+        torres[0].push(i);
+      }
+      movimentos = [];
+      moverDiscos(numDiscos, 0, 2, 1);
+      desenharTorres();
+
+      clearInterval(intervalo);
+      intervalo = setInterval(executarMovimentos, velocidade);
+    }
+
+    function resetSimulacao() {
+      clearInterval(intervalo);
+      torres = [[], [], []];
+      desenharTorres();
+    }
+
+    desenharTorres();
+  </script>
+</body>
+</html>
